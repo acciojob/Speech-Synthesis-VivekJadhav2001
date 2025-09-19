@@ -37,6 +37,70 @@
   const stopButton = document.querySelector('#stop');
 
   //Your code goes here
+const textArea = document.getElementById("textArea");
+    const typesOfVoices = document.getElementById("typesOfVoices");
+    const rate = document.getElementById("rate");
+    const pitch = document.getElementById("pitch");
+    const playBtn = document.getElementById("play");
+    const stopBtn = document.getElementById("stop");
+
+    let voices = [];
+
+    function getVoices() {
+      voices = speechSynthesis.getVoices();
+      typesOfVoices.innerHTML = ""; // clear old options
+
+      if (voices.length === 0) {
+        const option = document.createElement("option");
+        option.textContent = "No voices available";
+        typesOfVoices.append(option);
+        return;
+      }
+
+      voices.forEach((voice, index) => {
+        const option = document.createElement("option");
+        option.value = index;
+        option.textContent = `${voice.name} (${voice.lang})`;
+        typesOfVoices.append(option);
+      });
+
+      typesOfVoices.selectedIndex = 0; // default voice
+    }
+
+    speechSynthesis.onvoiceschanged = getVoices;
+
+    function speak() {
+      if (!textArea.value.trim()) return;
+
+      const utterance = new SpeechSynthesisUtterance(textArea.value);
+
+      if (voices[typesOfVoices.value]) {
+        utterance.voice = voices[typesOfVoices.value];
+        utterance.lang = voices[typesOfVoices.value].lang;
+      }
+
+      utterance.rate = parseFloat(rate.value);
+      utterance.pitch = parseFloat(pitch.value);
+
+      speechSynthesis.cancel(); // cancel ongoing speech
+      speechSynthesis.speak(utterance);
+    }
+
+    function stopSpeaking() {
+      speechSynthesis.cancel();
+    }
+
+    playBtn.addEventListener("click", speak);
+    stopBtn.addEventListener("click", stopSpeaking);
+
+    // Restart speech on voice, rate, pitch changes if already speaking
+    [typesOfVoices, rate, pitch].forEach(el => {
+      el.addEventListener("change", () => {
+        if (speechSynthesis.speaking) {
+          speak();
+        }
+      });
+    });
 </script>
 
 </body>
